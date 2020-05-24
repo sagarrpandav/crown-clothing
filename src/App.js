@@ -6,6 +6,7 @@ import {Route} from 'react-router-dom';
 import Header from "./components/header/header.component";
 import SignInRegisterPage from "./pages/signInRegisterPage/signInRegsiterPage.component";
 import {auth} from "./firebase/firebase.utils";
+import {createUserProfileDocument} from "./firebase/firebase.utils";
 
 class App extends React.Component {
     constructor(props) {
@@ -16,11 +17,31 @@ class App extends React.Component {
     }
 
     componentDidMount() {
-        this.unsubscribeFromAuth = auth.onAuthStateChanged(user => {
-            console.log(user);
-            this.setState(prevState => {
-                return ({...prevState, currentUser: user});
-            })
+        this.unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
+            if (userAuth) {
+                const userRef = await createUserProfileDocument(userAuth);
+
+                userRef.onSnapshot(snapshot => {
+                    this.setState(prevState => {
+                        return {
+                            ...prevState,
+                            currentUser: {
+                                id: snapshot.id,
+                                ...snapshot.data()
+                            }
+                        }
+                    });
+                });
+                //console.log(user);
+            } else {
+                this.setState(prevState => {
+                    return ({
+                            ...prevState,
+                            currentUser: userAuth
+                        }
+                    );
+                })
+            }
         })
     }
 
@@ -31,7 +52,7 @@ class App extends React.Component {
     render() {
         return (
             <div>
-                <Header currentUser = {this.state.currentUser}/>
+                <Header currentUser={this.state.currentUser}/>
                 <Route exact path='/' component={Homepage}/>
                 <Route path='/shop' component={ShopPage}/>
                 <Route path='/signin' component={SignInRegisterPage}/>
