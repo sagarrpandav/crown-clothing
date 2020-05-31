@@ -11,7 +11,7 @@ const PreviewCollection = ({title, items}) => {
                     return idx < 4
                 }).map(item => {
                     return (
-                        <CollectionItem key={item.id} {...item}/>
+                        <CollectionItem key={item.id} item = {item}/>
                     )
                 })}
             </div>
